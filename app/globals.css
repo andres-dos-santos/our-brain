@@ -1,3 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+p, span, strong, h1, h2, h3 {
+  text-rendering: optimizeLegibility;
+}
