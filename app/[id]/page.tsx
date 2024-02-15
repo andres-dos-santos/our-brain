@@ -84,7 +84,7 @@ export default function Home(props: { params: { id: string } }) {
           </BoxHeader.Questions>
         </BoxHeader.Root>
 
-        <input
+        <textarea
           disabled={editable}
           {...register('thinking')}
           className="bg-zinc-900 text-sm outline-none flex flex-1 resize-none leading-7"
@@ -105,7 +105,7 @@ export default function Home(props: { params: { id: string } }) {
           </BoxHeader.Questions>
         </BoxHeader.Root>
 
-        <input
+        <textarea
           disabled={editable}
           {...register('emotion')}
           className="bg-zinc-900 text-sm outline-none flex flex-1 resize-none leading-7"
@@ -126,7 +126,7 @@ export default function Home(props: { params: { id: string } }) {
           </BoxHeader.Questions>
         </BoxHeader.Root>
 
-        <input
+        <textarea
           disabled={editable}
           {...register('behavior')}
           className="bg-zinc-900 text-sm outline-none flex flex-1 resize-none leading-7"

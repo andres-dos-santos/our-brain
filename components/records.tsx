@@ -27,7 +27,9 @@ export async function Records() {
             className="hover:text-blue-500 cursor-pointer flex items-center justify-between"
           >
             <Link href={item.id}>
-              <span className="text-sm font-medium">{item.created_at}</span>
+              <span className="text-sm font-medium truncate">
+                {item.created_at}
+              </span>
             </Link>
 
             <svg
