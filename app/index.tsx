@@ -1,20 +1,73 @@
 import { Ionicons } from '@expo/vector-icons';
-import BottomSheet from '@gorhom/bottom-sheet';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import { Stack } from 'expo-router';
-import { useMemo, useRef, useState } from 'react';
-import { Text, TouchableOpacity, View, FlatList } from 'react-native';
+import { Link, Stack } from 'expo-router';
+import { Text, View, Pressable, SectionList } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
-import { zinc } from 'tailwindcss/colors';
+import { orange } from 'tailwindcss/colors';
 
-import { FireSVG } from '~/components/svgs/fire';
-import { GymSVG } from '~/components/svgs/gym';
-import { HamburguerSVG } from '~/components/svgs/hamburguer';
-import { queryClient } from '~/data/query-client';
+import { CreateWeight } from '~/components/create-weight';
+import { DietItem } from '~/components/diet-item';
 import { supabase } from '~/data/supabase';
 
-const KEYBOARD_DATA = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', 'back'];
+const SESSIONS = [
+  {
+    title: 'Café da manhã • 8am',
+    total: '495 kcal',
+    index: '1',
+    data: [
+      '🍳  2 ovos mexidos (140 kcal)',
+      '🍞  2 fatias de pão integral (160 kcal)',
+      '🥜  1 c/ sopa de pasta de amendoim (90 kcal)',
+      '🍌  1 banana (105 kcal)',
+    ],
+  },
+  {
+    title: 'Lanche da manhã • 10:30am',
+    total: '215 kcal',
+    index: '2',
+    data: ['🍶  1 iogurte normal (120 kcal)', '🍎  1 maçã (95 kcal)'],
+  },
+  {
+    title: 'Almoço • 1pm',
+    total: '~557 kcal',
+    index: '3',
+    data: [
+      '🐔  100g de peito de frango grelhado (165 kcal)',
+      '🍚  100g de arroz branco (222 kcal)',
+      '🥬  Vegetais variados à vontade (50 kcal)',
+      '🍾  1 c/ sopa de azeite de oliva (120 kcal)',
+      '🫘  80g de feijão (70 kcal)',
+    ],
+  },
+  {
+    title: 'Lanche da tarde • 4pm',
+    total: '280 kcal',
+    index: '4',
+    data: ['🌰  30g de castanhas mistas (180 kcal)', '🍶  1 iogurte normal (120 kcal)'],
+  },
+  {
+    title: 'Jantar • 7:30pm',
+    total: '610 kcal',
+    index: '5',
+    data: [
+      '🥩  150g de alcatra moída (300 kcal)',
+      '🥔  1 batata-doce média assada (130 kcal)',
+      '🥬  Brócolis cozidos no vapor (50 kcal)',
+      '🥬  Salada de folhas verdes (30 kcal)',
+      '🍾  1 c/ sopa de azeite de oliva (120 kcal)',
+    ],
+  },
+  {
+    title: 'Ceia • 10:30pm',
+    total: '210 kcal',
+    index: '6',
+    data: [
+      '🧃  1 scoop de whey protein (120 kcal)',
+      '🥜  1 c/ sopa de pasta de amendoim (90 kcal)',
+    ],
+  },
+];
 
 interface Data {
   value: number;
@@ -22,8 +75,6 @@ interface Data {
 }
 
 export default function Page() {
-  const [changed, setChanged] = useState('');
-
   const { data } = useQuery({
     queryKey: ['get-all-weights-query'],
     queryFn: async () => {
@@ -33,92 +84,104 @@ export default function Page() {
     },
   });
 
-  const bottomSheetRef = useRef<BottomSheet>(null);
-
-  async function handleInsert() {
-    const response = await supabase.from('weight').insert({ value: +changed });
-
-    if (response.status === 201) {
-      await queryClient.invalidateQueries({ queryKey: ['get-all-weights-query'] });
-
-      bottomSheetRef.current?.collapse();
-
-      setChanged('');
-    }
-
-    // data.push(response.data);
-  }
-
-  const last = data && data.length > 0 ? data[data.length - 1].value : 0;
-
   // const percentage = (last / 70) * 100;
 
   const hasData = data && data.length > 0;
+
+  const last = hasData ? data[data.length - 1].value : 0;
 
   return (
     <>
       <Stack.Screen options={{ title: 'Overview' }} />
 
-      <View className="flex-1 items-center pt-14">
-        <View className="flex-row items-center justify-between w-full px-10 mb-10">
-          <View className="h-14 w-14 rounded-full bg-zinc-100" />
-        </View>
+      <SectionList
+        overScrollMode="never"
+        showsVerticalScrollIndicator={false}
+        sections={SESSIONS}
+        contentContainerStyle={{ paddingHorizontal: 40, paddingTop: 80, paddingBottom: 80 }}
+        keyExtractor={(item, index) => item + index}
+        renderItem={DietItem}
+        renderSectionHeader={({ section: { title, total, index } }) => (
+          <View className="flex-row items-center justify-between my-10">
+            <View className="flex-row items-center">
+              <Text className="font-im text-xs uppercase">{title}</Text>
+            </View>
+            <Text className="font-usb text-sm">{total}</Text>
+          </View>
+        )}
+        ListHeaderComponent={() => (
+          <View className="items-center justify-center mb-10">
+            {/*
+              <View className="flex-row items-center justify-between w-full px-10 mb-10">
+                <View className="h-14 w-14 rounded-full bg-zinc-100" />
+              </View>*/}
 
-        <Text className="font-ir text-sm text-zinc-700 -tracking-wide">
-          Your weight •{' '}
-          {hasData
-            ? `${dayjs(new Date()).diff(dayjs(data[data.length - 1].created_at), 'minutes')} minutes ago`
-            : null}
-        </Text>
-        <View className="flex-row items-center my-10">
-          <Text className="font-um text-3xl mr-2.5">{last} kg</Text>
-
-          <FireSVG
-            advanced={
-              data && data.length > 0
-                ? data.length === 1 || last > data[data.length - 2].value
-                : false
-            }
-          />
-          {/**<Text className="font-um text-3xl">2.5 kcal</Text> */}
-        </View>
-
-        {data && data.length > 2 ? (
-          <View className="h-[50px] relative">
-            <LineChart
-              data={data}
-              width={350}
-              hideDataPoints1
-              curved
-              hideYAxisText
-              isAnimated
-              color1={zinc[700]}
-              hideAxesAndRules
-            />
-
-            <Text className="font-usb text-sm absolute -tracking-wide -top-5 right-5">
-              goal {70} kg
+            <Text className="font-ir text-sm text-zinc-700 -tracking-wide">
+              Your weight •{' '}
+              {hasData
+                ? `${dayjs(new Date()).diff(dayjs(data[data.length - 1].created_at), 'h')} hours ago`
+                : null}
             </Text>
-          </View>
-        ) : null}
 
-        <View className="mt-10 w-full flex-row items-center px-10 justify-between">
-          <View className="h-44 flex-1 ml-2.5 bg-cyan-200/50 rounded-[32px] justify-between p-5">
-            <View className="bg-cyan-400/20 items-center justify-center h-14 w-14 rounded-full">
-              <HamburguerSVG />
+            <View className="flex-row items-center my-10">
+              <View>
+                <Text className="font-um text-3xl mr-2.5">{last} kg</Text>
+                {/**<Text className="font-usb text-sm -tracking-wide absolute text-zinc-500 top-10">
+                  {70} kg
+                </Text> */}
+              </View>
+
+              <Text className="font-um text-3xl">•</Text>
+
+              {/**<FireSVG
+                advanced={hasData ? data.length === 1 || last > data[data.length - 2].value : false}
+              /> */}
+
+              <Text className="font-um text-3xl ml-2.5">2213 kcal</Text>
             </View>
-            <Text className="font-usb text-zinc-700 text-xl mb-2.5 -tracking-wide">Diet</Text>
-          </View>
 
-          <View className="h-44 flex-1 ml-2.5 bg-yellow-200/50 rounded-[32px] justify-between p-5">
-            <View className="bg-yellow-400/20 items-center justify-center h-14 w-14 rounded-full">
-              <GymSVG />
-            </View>
-            <Text className="font-usb text-zinc-700 text-xl mb-2.5 -tracking-wide">Gym</Text>
-          </View>
-        </View>
+            <Link asChild href="/shopping-list/">
+              <Pressable className="h-10 pl-5 pr-1 mb-10 items-center justify-center bg-zinc-800 flex-row rounded-full">
+                <Text className="font-im text-white text-xs -tracking-wide mr-3">
+                  SHOPPING LIST
+                </Text>
 
-        {/** <View className="flex-row items-center max-w-[80%] relative mb-10">
+                <View className="h-8 w-8 items-center justify-center rounded-full bg-white">
+                  <Ionicons name="arrow-forward" />
+                </View>
+              </Pressable>
+            </Link>
+
+            {data && data.length >= 2 ? (
+              <View className="h-[50px] ">
+                <LineChart
+                  data={data}
+                  width={350}
+                  hideDataPoints1
+                  curved
+                  hideYAxisText
+                  isAnimated
+                  color1={orange[500]}
+                  hideAxesAndRules
+                />
+              </View>
+            ) : null}
+
+            {/**<TouchableOpacity
+              activeOpacity={0.8}
+              // onPress={handleInsert}
+              className="h-10 pl-5 pr-1 rounded-full items-center justify-center border border-zinc-200 mr-2.5 flex-row mt-10">
+              <Text className="font-im text-zinc-900 text-[10px]">SHOPPING LIST</Text>
+
+              <View className="h-8 w-8 items-center justify-center bg-white ml-2.5 rounded-full">
+                <Ionicons name="arrow-forward" />
+              </View>
+            </TouchableOpacity> */}
+          </View>
+        )}
+      />
+
+      {/** <View className="flex-row items-center max-w-[80%] relative mb-10">
           <View className="h-[2px] rounded-full w-full bg-zinc-200" />
           <View
             className="h-[2px] rounded-full absolute bg-zinc-700"
@@ -142,70 +205,8 @@ export default function Page() {
             )}
           /> 
         </View>*/}
-      </View>
 
-      <BottomSheet
-        ref={bottomSheetRef}
-        snapPoints={useMemo(() => ['9%', '50%', '75%'], [])}
-        backgroundStyle={{
-          borderTopWidth: 1,
-          borderTopColor: zinc[200],
-          borderTopRightRadius: 0,
-          borderTopLeftRadius: 0,
-        }}
-        handleIndicatorStyle={{ marginTop: 20 }}>
-        <View className="flex-1 items-center">
-          <View className="p-10 w-full rounded-t-2xl bg-white">
-            <View className="flex-row items-center justify-between">
-              <Text className="text-zinc-700 font-im text-xs -tracking-wide uppercase">
-                Set your weight
-              </Text>
-
-              <View className="flex-row items-center">
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={handleInsert}
-                  className="h-12 px-10 rounded-full items-center justify-center bg-zinc-700 mr-2.5">
-                  <Text className="font-ir text-white text-[12px]">Confirm</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => bottomSheetRef.current?.collapse()}
-                  hitSlop={{ right: 30, bottom: 10 }}>
-                  <Ionicons name="close" size={16} />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View className="items-center justify-center my-10">
-              <Text className="font-um text-[24px]">{changed || '00'}</Text>
-            </View>
-
-            <FlatList
-              data={KEYBOARD_DATA}
-              contentContainerStyle={{ paddingBottom: 40 }}
-              numColumns={3}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  className="flex-1 h-20 items-center justify-center"
-                  activeOpacity={0.8}
-                  onPress={() =>
-                    item === 'back'
-                      ? setChanged((prev) => prev.slice(0, -1))
-                      : setChanged((prev) => prev.concat(item))
-                  }>
-                  {item === 'back' ? (
-                    <Ionicons name="backspace" size={24} color={zinc[700]} />
-                  ) : (
-                    <Text className="font-um text-[24px]">{item}</Text>
-                  )}
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        </View>
-      </BottomSheet>
+      <CreateWeight />
     </>
   );
 }
