@@ -7,6 +7,7 @@ module.exports = {
     extend: {
       fontFamily: {
         um: ['urbanist-medium'],
+        usb: ['urbanist-semibold'],
         ir: ['inter-regular'],
         im: ['inter-medium'],
       },
