@@ -6,7 +6,6 @@ import { Text, View, Pressable, SectionList } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 import { orange } from 'tailwindcss/colors';
 
-import { CreateWeight } from '~/components/create-weight';
 import { DietItem } from '~/components/diet-item';
 import { supabase } from '~/data/supabase';
 
@@ -140,17 +139,31 @@ export default function Page() {
               <Text className="font-um text-3xl ml-2.5">2213 kcal</Text>
             </View>
 
-            <Link asChild href="/shopping-list/">
-              <Pressable className="h-10 pl-5 pr-1 mb-10 items-center justify-center bg-zinc-800 flex-row rounded-full">
-                <Text className="font-im text-white text-xs -tracking-wide mr-3">
-                  SHOPPING LIST
-                </Text>
+            <View className="flex-row items-center gap-2">
+              <Link asChild href="/shopping-list/">
+                <Pressable className="h-10 pl-5 pr-1 mb-10 items-center justify-center bg-orange-500 flex-row rounded-full">
+                  <Text className="font-im text-white text-xs -tracking-wide mr-3">
+                    SHOPPING LIST
+                  </Text>
 
-                <View className="h-8 w-8 items-center justify-center rounded-full bg-white">
-                  <Ionicons name="arrow-forward" />
-                </View>
-              </Pressable>
-            </Link>
+                  <View className="h-8 w-8 items-center justify-center rounded-full bg-white">
+                    <Ionicons name="arrow-forward" color={orange[500]} />
+                  </View>
+                </Pressable>
+              </Link>
+
+              <Link asChild href="/create-weight/">
+                <Pressable className="h-10 pl-5 pr-1 mb-10 items-center justify-center border border-zinc-200 flex-row rounded-full">
+                  <Text className="font-im text-zinc-900 text-xs -tracking-wide mr-3">
+                    NEW WEIGHT
+                  </Text>
+
+                  <View className="h-8 w-8 items-center justify-center rounded-full bg-white">
+                    <Ionicons name="add" color={orange[500]} />
+                  </View>
+                </Pressable>
+              </Link>
+            </View>
 
             {data && data.length >= 2 ? (
               <View className="h-[50px] ">
@@ -205,8 +218,6 @@ export default function Page() {
             )}
           /> 
         </View>*/}
-
-      <CreateWeight />
     </>
   );
 }
